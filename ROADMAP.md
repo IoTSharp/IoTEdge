@@ -12,7 +12,7 @@
 
 - 单宿主 Gateway（`IoTEdge`）：bootstrap、注册、心跳、采集配置同步、采集执行、回传
 - C# AOT 边缘基座（被 SaaS 端 `IoTSharp.CodeGen.CSharpAot` 作为生成目标使用）
-- BasicRuntime 宿主接口（C# 版），用于承载 IoTEmBASIC 风格脚本
+- BasicRuntime 宿主接口（C# 版），用于承载 IoTEmbedded BASIC 风格脚本
 - 采集、合成、上传逻辑优先由 BASIC 脚本承载；C# 侧提供宿主、可注入能力和 AOT/非 AOT 边界
 
 不承载：多租户、Copilot、计费、License。
@@ -25,7 +25,7 @@
 | G1 | 🚧 | bootstrap / 注册 / 心跳 / 配置同步 / 回传 完整链路稳定 |
 | G2 | ⏳ | C# AOT 发布稳定（裁剪、启动时间、体积） |
 | G3 | 🚧 | BasicRuntime 宿主 v1 + 可注入扩展 |
-| G4 | ⏳ | 多协议插件接入（与 Pixiu C 版能力对齐的子集） |
+| G4 | ⏳ | 多协议插件接入（与 IoTEmbedded 能力对齐的网关子集） |
 | G5 | ⏳ | 远程诊断与现场可观测 |
 
 ## 2. Phase A — 链路稳定　🚧
@@ -54,7 +54,7 @@
 | --- | --- | --- | --- |
 | C1 | 🚧 | [依赖: B1] | BasicRuntime 接口注册表 / 扩展注入 / 脚本入口 |
 | C2 | ⏳ | [依赖: C1] | 脚本加载、签名校验、版本槽 |
-| C3 | ⏳ | [依赖: C1] | 与 `external/IoTEdge.Stm32` 接口签名对齐 |
+| C3 | ⏳ | [依赖: C1] | 与 `external/IoTEmbedded` 接口签名对齐 |
 | C4 | ⏳ | [依赖: C2] | 沙箱与运行预算 |
 
 ## 5. Phase D — 协议与诊断　⏳
@@ -69,5 +69,5 @@
 ## 6. 接口稳定性公约
 
 - 与 `IoTSharp.SaaS` 端 `IoTSharp.CodeGen.CSharpAot` 之间的接口为公开契约；破坏性变更需 6 个月废弃期。
-- 与 `external/IoTEdge.Stm32`、`external/IoTEdge.Linux` 共同维护 BasicRuntime 接口签名表。
+- 与 `external/IoTEmbedded` 共同维护 BasicRuntime 接口签名表；`external/IoTEdge.Linux` 仅作为 Pixiu 历史迁移来源。
 - 本仓库不感知租户 / 计费 / License。
