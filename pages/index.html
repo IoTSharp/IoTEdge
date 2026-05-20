@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IoTEdge | C# AOT Edge Gateway</title>
+  <meta name="description" content="IoTEdge 是 IoTSharp 生态的 C# AOT 边缘网关基座，负责本地采集、离线缓存、协议驱动、上传链路和 BASIC 采集脚本运行。">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="https://iotsharp.net/" aria-label="IoTSharp home">
+      <span class="brand-mark">IoT</span>
+      <span>IoTSharp</span>
+    </a>
+    <nav aria-label="Project navigation">
+      <a href="#capabilities">能力</a>
+      <a href="#architecture">架构</a>
+      <a href="#start">开始</a>
+      <a href="https://github.com/IoTSharp/IoTEdge">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">IoTSharp Edge Runtime</p>
+        <h1>IoTEdge</h1>
+        <p class="hero-text">
+          C# AOT 边缘网关基座。它在现场侧读取本地 bootstrap，注册到 IoTSharp，拉取采集配置，执行工业协议轮询，并把结果上传到 IoTSharp、SonnetDB、InfluxDB 或 ThingsBoard。
+        </p>
+        <div class="actions">
+          <a class="primary" href="#start">快速开始</a>
+          <a class="secondary" href="https://github.com/IoTSharp/IoTEdge">查看源码</a>
+        </div>
+      </div>
+      <div class="hero-diagram" aria-label="IoTEdge runtime flow">
+        <div>
+          <span>Bootstrap</span>
+          <strong>本地配置</strong>
+          <small>bootstrap.json / local-collection.json</small>
+        </div>
+        <div>
+          <span>Collect</span>
+          <strong>协议采集</strong>
+          <small>Modbus / PLC / OPC UA / MTConnect</small>
+        </div>
+        <div>
+          <span>Upload</span>
+          <strong>多目标上报</strong>
+          <small>IoTSharp / SonnetDB / InfluxDB</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="capabilities" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Capabilities</p>
+        <h2>边缘节点需要的运行能力，集中在一个宿主里</h2>
+      </div>
+      <div class="feature-grid">
+        <article>
+          <span>01</span>
+          <h3>平台同步</h3>
+          <p>向 IoTSharp 注册、心跳、上报能力，并周期性拉取采集配置。</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>离线运行</h3>
+          <p>平台不可用时继续使用本地缓存配置运行，不清空已有执行计划。</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>工业驱动</h3>
+          <p>已接入 Modbus、Siemens、Mitsubishi、Omron FINS、Allen-Bradley、OPC UA、MTConnect。</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>BASIC 脚本</h3>
+          <p>内置 BASIC runtime，并支持 MQTT、串口、Modbus、PLC 等采集内建能力。</p>
+        </article>
+        <article>
+          <span>05</span>
+          <h3>本地管理 UI</h3>
+          <p>随宿主启动的 Vue SPA 提供运行态、配置、日志、协议和上传链路编辑入口。</p>
+        </article>
+        <article>
+          <span>06</span>
+          <h3>AOT 发布</h3>
+          <p>支持普通构建和 AOT 发布，AOT 模式自动跳过可选网关扩展注入层。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="architecture" class="section split">
+      <div class="section-heading">
+        <p class="eyebrow">Architecture</p>
+        <h2>从平台模型到本地执行缓存</h2>
+      </div>
+      <div class="flow">
+        <div><b>IoTSharp 平台</b><small>采集模型、节点管理、任务下发</small></div>
+        <div><b>IoTEdge Gateway</b><small>配置映射、轮询调度、诊断 API</small></div>
+        <div><b>Industrial Devices</b><small>协议驱动、点位读取、写入控制</small></div>
+        <div><b>Upload Channels</b><small>遥测、属性、时序库和外部系统</small></div>
+      </div>
+      <div class="module-list">
+        <p><strong>IoTEdge.Domain</strong> 领域模型与统一驱动接口。</p>
+        <p><strong>IoTEdge.Application</strong> 运行服务、配置快照和转换服务。</p>
+        <p><strong>IoTEdge.Infrastructure</strong> SQLite 缓存、驱动适配和上传通道。</p>
+        <p><strong>IoTEdge</strong> 单宿主程序、本地 API、同步 worker 和 SPA 托管。</p>
+      </div>
+    </section>
+
+    <section id="start" class="section start">
+      <div>
+        <p class="eyebrow">Start</p>
+        <h2>本地运行与构建验证</h2>
+        <p>默认本地地址为 Edge UI / API: <code>http://127.0.0.1:18180/</code>，Device Simulator: <code>http://127.0.0.1:18181/api/values</code>。</p>
+      </div>
+      <pre><code>docker compose up -d --build
+
+pwsh ./build.ps1 -Action Build
+pwsh ./build.ps1 -Action Publish -MustAot</code></pre>
+    </section>
+  </main>
+
+  <footer>
+    <span>IoTEdge is part of the IoTSharp open source ecosystem.</span>
+    <a href="https://iotsharp.net/">iotsharp.net</a>
+  </footer>
+</body>
+</html>

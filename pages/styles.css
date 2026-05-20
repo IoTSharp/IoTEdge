@@ -1,0 +1,411 @@
+:root {
+  color-scheme: light;
+  --ink: #20133a;
+  --muted: #5c5570;
+  --brand: #512bd4;
+  --brand-dark: #32145a;
+  --accent: #50e6ff;
+  --line: #e7e3f7;
+  --soft: #f6f3ff;
+  --panel: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: #ffffff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.brand,
+.site-header nav {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: 0.7rem;
+  font-weight: 800;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--brand);
+  font-size: 0.82rem;
+}
+
+.site-header nav {
+  gap: 1.6rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.site-header nav a:hover {
+  color: var(--brand);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.72fr);
+  gap: 4rem;
+  align-items: center;
+  min-height: calc(100svh - 4rem);
+  padding: 7rem 8rem 6rem;
+  color: #ffffff;
+  background:
+    linear-gradient(115deg, rgba(50, 20, 90, 0.96), rgba(81, 43, 212, 0.9) 58%, rgba(118, 74, 188, 0.82)),
+    url("https://iotsharp.net/home_bg_dark.webp") center / cover;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.hero .eyebrow {
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: 6rem;
+  line-height: 0.98;
+}
+
+.hero-text {
+  max-width: 48rem;
+  margin: 1.5rem 0 0;
+  color: #f2eaff;
+  font-size: 1.18rem;
+  line-height: 1.9;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 2.5rem;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  border-radius: 8px;
+  padding: 0.8rem 1.2rem;
+  font-weight: 800;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.primary {
+  color: var(--brand);
+  background: #ffffff;
+}
+
+.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  color: #ffffff;
+}
+
+.primary:hover,
+.secondary:hover {
+  transform: translateY(-2px);
+}
+
+.primary:hover {
+  color: var(--ink);
+  background: var(--accent);
+}
+
+.secondary:hover {
+  border-color: var(--accent);
+}
+
+.hero-diagram {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero-diagram div {
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 1.35rem 0 1.35rem 1.45rem;
+}
+
+.hero-diagram span {
+  display: block;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero-diagram strong {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 1.45rem;
+}
+
+.hero-diagram small {
+  display: block;
+  margin-top: 0.55rem;
+  color: #f2eaff;
+  line-height: 1.55;
+}
+
+.section {
+  padding: 6rem 8rem;
+}
+
+.section:nth-of-type(odd) {
+  background: var(--soft);
+}
+
+.section-heading {
+  max-width: 58rem;
+}
+
+.section-heading h2,
+.start h2 {
+  margin: 1rem 0 0;
+  font-size: 3.25rem;
+  line-height: 1.12;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 3rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.feature-grid article {
+  min-height: 14rem;
+  padding: 1.5rem;
+  background: var(--panel);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.feature-grid article:hover {
+  background: #fbfaff;
+  transform: translateY(-2px);
+}
+
+.feature-grid span {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.feature-grid h3 {
+  margin: 0.85rem 0 0;
+  font-size: 1.35rem;
+}
+
+.feature-grid p,
+.module-list p,
+.start p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 3rem;
+}
+
+.flow {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.flow div,
+.module-list p {
+  margin: 0;
+  padding: 1.15rem;
+  background: #ffffff;
+}
+
+.flow b,
+.flow small {
+  display: block;
+}
+
+.flow small {
+  margin-top: 0.35rem;
+  color: var(--muted);
+}
+
+.module-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.start {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+code {
+  border-radius: 5px;
+  padding: 0.1rem 0.25rem;
+  background: #eee8ff;
+  color: var(--brand-dark);
+}
+
+pre {
+  margin: 0;
+  overflow: auto;
+  border-radius: 8px;
+  padding: 1.35rem;
+  background: #20133a;
+  color: #f2eaff;
+  line-height: 1.7;
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 2rem 8rem;
+  color: #f2eaff;
+  background: var(--brand-dark);
+}
+
+footer a {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .split,
+  .start {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .section,
+  footer {
+    padding-right: 3rem;
+    padding-left: 3rem;
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+    height: auto;
+    padding: 0.9rem 1.25rem;
+  }
+
+  .site-header nav {
+    width: 100%;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    white-space: nowrap;
+  }
+
+  .hero {
+    min-height: auto;
+    gap: 2.5rem;
+    padding: 5rem 1.25rem 4rem;
+  }
+
+  h1 {
+    font-size: 3.35rem;
+  }
+
+  .section-heading h2,
+  .start h2 {
+    font-size: 2.15rem;
+  }
+
+  .section,
+  footer {
+    padding: 4rem 1.25rem;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  footer {
+    flex-direction: column;
+  }
+
+  .primary,
+  .secondary {
+    width: 100%;
+  }
+}
