@@ -1,3 +1,4 @@
+using System.Text.Json;
 using IoTEdge.Application;
 using IoTEdge.Domain;
 using IoTEdge.Infrastructure;
@@ -94,6 +95,166 @@ public sealed class GatewayInfrastructureDriverTests
 
         Assert.True(valid.IsValid);
         Assert.False(invalid.IsValid);
+    }
+
+    [Fact]
+    public async Task Modbus_driver_validates_address_and_function_code()
+    {
+        var services = new ServiceCollection();
+        services.AddGatewayInfrastructure(new ConfigurationBuilder().Build());
+        using var provider = services.BuildServiceProvider();
+
+        var driver = provider.GetRequiredService<IDeviceDriverRegistry>().GetRequiredDriver("modbus");
+        var valid = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                "holding-register:40001",
+                GatewayDataType.Float,
+                2,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = "holding-register",
+                    ["functionCode"] = "3",
+                    ["registerCount"] = "2",
+                    ["byteOrder"] = "bigEndian",
+                    ["wordOrder"] = "littleEndian"
+                }),
+            CancellationToken.None);
+        var invalidFunctionCode = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                "holding-register:40001",
+                GatewayDataType.Float,
+                2,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = "holding-register",
+                    ["functionCode"] = "2"
+                }),
+            CancellationToken.None);
+        var invalidAddress = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                "holding-register:70000",
+                GatewayDataType.Float,
+                2,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = "holding-register",
+                    ["functionCode"] = "3"
+                }),
+            CancellationToken.None);
+
+        Assert.True(valid.IsValid);
+        Assert.False(invalidFunctionCode.IsValid);
+        Assert.False(invalidAddress.IsValid);
+    }
+
+    [Fact]
+    public async Task Modbus_driver_rejects_invalid_byte_order()
+    {
+        var services = new ServiceCollection();
+        services.AddGatewayInfrastructure(new ConfigurationBuilder().Build());
+        using var provider = services.BuildServiceProvider();
+
+        var driver = provider.GetRequiredService<IDeviceDriverRegistry>().GetRequiredDriver("modbus");
+        var result = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                "input-register:30001",
+                GatewayDataType.UInt16,
+                1,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = "input-register",
+                    ["functionCode"] = "4",
+                    ["byteOrder"] = "middleEndian"
+                }),
+            CancellationToken.None);
+
+        Assert.False(result.IsValid);
+        Assert.Contains("byteOrder", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Collection_mapper_preserves_modbus_binding_fields_and_scale_offset()
+    {
+        var configuration = new EdgeCollectionConfigurationContract
+        {
+            EdgeNodeId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Tasks =
+            [
+                new CollectionTaskContract
+                {
+                    TaskKey = "modbus-task",
+                    Protocol = GatewayCollectionProtocolType.Modbus,
+                    Connection = new CollectionConnectionContract
+                    {
+                        ConnectionName = "modbus-task",
+                        Protocol = GatewayCollectionProtocolType.Modbus,
+                        Transport = "tcp",
+                        Host = "127.0.0.1",
+                        Port = 1502
+                    },
+                    Devices =
+                    [
+                        new CollectionDeviceContract
+                        {
+                            DeviceKey = "slave-1",
+                            DeviceName = "Slave 1",
+                            ProtocolOptions = JsonSerializer.SerializeToElement(new Dictionary<string, object?>
+                            {
+                                ["slaveId"] = 1
+                            }),
+                            Points =
+                            [
+                                new CollectionPointContract
+                                {
+                                    PointKey = "supply-temp",
+                                    PointName = "Supply temperature",
+                                    SourceType = "HoldingRegister",
+                                    Address = "holding-register:40001",
+                                    RawValueType = "Float32",
+                                    Length = 2,
+                                    ProtocolOptions = JsonSerializer.SerializeToElement(new Dictionary<string, object?>
+                                    {
+                                        ["byteOrder"] = "bigEndian",
+                                        ["wordOrder"] = "littleEndian",
+                                        ["scale"] = 0.1m,
+                                        ["offset"] = 2m
+                                    }),
+                                    Mapping = new PlatformMappingContract
+                                    {
+                                        TargetType = GatewayCollectionTargetType.Telemetry,
+                                        TargetName = "supplyTemperature",
+                                        ValueType = GatewayCollectionValueType.Double
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var snapshot = GatewayCollectionConfigurationMapper.Map(configuration, new EdgeReportingOptions());
+        var point = Assert.Single(snapshot.Points);
+        var settings = JsonSerializer.Deserialize<Dictionary<string, string>>(point.SettingsJson)
+            ?? throw new InvalidOperationException("Could not deserialize point settings.");
+
+        Assert.Equal("holding-register", settings["registerType"]);
+        Assert.Equal("3", settings["functionCode"]);
+        Assert.Equal("2", settings["registerCount"]);
+        Assert.Equal("bigEndian", settings["byteOrder"]);
+        Assert.Equal("littleEndian", settings["wordOrder"]);
+        Assert.Collection(
+            snapshot.TransformRules.OrderBy(rule => rule.SortOrder),
+            scale =>
+            {
+                Assert.Equal(TransformationKind.Scale, scale.Kind);
+                Assert.Contains("\"factor\":\"0.1\"", scale.ArgumentsJson, StringComparison.Ordinal);
+            },
+            offset =>
+            {
+                Assert.Equal(TransformationKind.Offset, offset.Kind);
+                Assert.Contains("\"offset\":\"2\"", offset.ArgumentsJson, StringComparison.Ordinal);
+            });
     }
 
     [Fact]

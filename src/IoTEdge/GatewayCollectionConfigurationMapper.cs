@@ -496,6 +496,48 @@ internal static class GatewayCollectionConfigurationMapper
         CollectionPointContract point,
         Guid pointId)
     {
+        if (task.Protocol == GatewayCollectionProtocolType.Modbus)
+        {
+            var nextOrder = 0;
+            var scale = FirstString(point.ProtocolOptions, "scale");
+            if (!string.IsNullOrWhiteSpace(scale))
+            {
+                yield return new TransformRule
+                {
+                    Id = CreateDeterministicGuid(edgeNodeId, "transform", task.TaskKey, device.DeviceKey, point.PointKey, "modbus-scale"),
+                    PointId = pointId,
+                    Name = $"{point.PointName}-ModbusScale",
+                    Kind = TransformationKind.Scale,
+                    SortOrder = nextOrder,
+                    ArgumentsJson = GatewayJson.Serialize(new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["factor"] = scale
+                    }),
+                    Enabled = true
+                };
+
+                nextOrder++;
+            }
+
+            var offset = FirstString(point.ProtocolOptions, "offset");
+            if (!string.IsNullOrWhiteSpace(offset))
+            {
+                yield return new TransformRule
+                {
+                    Id = CreateDeterministicGuid(edgeNodeId, "transform", task.TaskKey, device.DeviceKey, point.PointKey, "modbus-offset"),
+                    PointId = pointId,
+                    Name = $"{point.PointName}-ModbusOffset",
+                    Kind = TransformationKind.Offset,
+                    SortOrder = nextOrder,
+                    ArgumentsJson = GatewayJson.Serialize(new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["offset"] = offset
+                    }),
+                    Enabled = true
+                };
+            }
+        }
+
         foreach (var transform in (point.Transforms ?? Array.Empty<ValueTransformContract>()).OrderBy(item => item.Order))
         {
             yield return new TransformRule
@@ -639,8 +681,13 @@ internal static class GatewayCollectionConfigurationMapper
                 settings["stationNumber"] = stationNumber;
             }
 
+            settings["registerType"] = NormalizeModbusRegisterType(point.SourceType);
             settings["functionCode"] = FirstString(point.ProtocolOptions, "functionCode")
                 ?? ResolveModbusFunctionCode(point.SourceType).ToString(CultureInfo.InvariantCulture);
+            settings["registerCount"] = ResolvePointLength(point).ToString(CultureInfo.InvariantCulture);
+
+            CopyIfPresent(settings, point.ProtocolOptions, "byteOrder");
+            CopyIfPresent(settings, point.ProtocolOptions, "wordOrder");
 
             var stringEncoding = FirstString(point.ProtocolOptions, "stringEncoding");
             if (!string.IsNullOrWhiteSpace(stringEncoding))
@@ -933,14 +980,35 @@ internal static class GatewayCollectionConfigurationMapper
 
     private static byte ResolveModbusFunctionCode(string? sourceType)
     {
-        return sourceType?.Trim().ToLowerInvariant() switch
+        return NormalizeModbusRegisterType(sourceType) switch
         {
             "coil" => 1,
-            "discreteinput" => 2,
-            "holdingregister" => 3,
-            "inputregister" => 4,
+            "discrete-input" => 2,
+            "holding-register" => 3,
+            "input-register" => 4,
             _ => 3
         };
+    }
+
+    private static string NormalizeModbusRegisterType(string? sourceType)
+    {
+        return NormalizeKey(sourceType) switch
+        {
+            "coil" or "coils" => "coil",
+            "discreteinput" or "discreteinputs" or "discrete" => "discrete-input",
+            "inputregister" or "inputregisters" => "input-register",
+            "holdingregister" or "holdingregisters" or "register" or "registers" or "" => "holding-register",
+            _ => throw new NotSupportedException($"网关同步不支持 Modbus 点位源类型“{sourceType}”。")
+        };
+    }
+
+    private static void CopyIfPresent(IDictionary<string, string?> target, JsonElement? source, string key)
+    {
+        var value = FirstString(source, key);
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            target[key] = value;
+        }
     }
 
     private static void MergeJsonObject(IDictionary<string, string?> target, JsonElement? element)
