@@ -88,8 +88,8 @@ internal sealed class ModbusDriver : DeviceDriverBase
         try
         {
             var client = CreateClient(context.Settings);
-            var station = Byte(request.Settings ?? new Dictionary<string, string?>(), "stationNumber", 1);
             var settings = request.Settings ?? new Dictionary<string, string?>();
+            var station = ByteAny(settings, 1, "unitId", "stationNumber", "slaveId");
             var functionCode = Byte(settings, "functionCode", request.DataType == GatewayDataType.Boolean ? (byte)1 : (byte)3);
             if (!IsReadFunctionCode(functionCode))
             {
@@ -137,7 +137,7 @@ internal sealed class ModbusDriver : DeviceDriverBase
         {
             var client = CreateClient(context.Settings);
             var settings = request.Settings ?? new Dictionary<string, string?>();
-            var station = Byte(settings, "stationNumber", 1);
+            var station = ByteAny(settings, 1, "unitId", "stationNumber", "slaveId");
             var functionCode = Byte(settings, "functionCode", request.DataType == GatewayDataType.Boolean ? (byte)5 : (byte)16);
             if (!IsWriteFunctionCode(functionCode))
             {
@@ -235,6 +235,19 @@ internal sealed class ModbusDriver : DeviceDriverBase
         foreach (var key in keys)
         {
             if (values.TryGetValue(key, out var value) && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return defaultValue;
+    }
+
+    private static byte ByteAny(IReadOnlyDictionary<string, string?> values, byte defaultValue, params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            if (values.TryGetValue(key, out var value) && byte.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
             {
                 return parsed;
             }

@@ -147,6 +147,41 @@ public sealed class GatewayInfrastructureDriverTests
         Assert.False(invalidAddress.IsValid);
     }
 
+    [Theory]
+    [InlineData("coil:00001", "coil", "1", GatewayDataType.Boolean)]
+    [InlineData("discrete-input:10001", "discrete-input", "2", GatewayDataType.Boolean)]
+    [InlineData("input-register:30001", "input-register", "4", GatewayDataType.UInt16)]
+    [InlineData("holding-register:40001", "holding-register", "3", GatewayDataType.Float)]
+    public async Task Modbus_driver_accepts_v1_register_types(
+        string address,
+        string registerType,
+        string functionCode,
+        GatewayDataType dataType)
+    {
+        var services = new ServiceCollection();
+        services.AddGatewayInfrastructure(new ConfigurationBuilder().Build());
+        using var provider = services.BuildServiceProvider();
+
+        var driver = provider.GetRequiredService<IDeviceDriverRegistry>().GetRequiredDriver("modbus");
+        var result = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                address,
+                dataType,
+                dataType == GatewayDataType.Float ? (ushort)2 : (ushort)1,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = registerType,
+                    ["functionCode"] = functionCode,
+                    ["registerCount"] = dataType == GatewayDataType.Float ? "2" : "1",
+                    ["unitId"] = "7",
+                    ["byteOrder"] = "bigEndian",
+                    ["wordOrder"] = "littleEndian"
+                }),
+            CancellationToken.None);
+
+        Assert.True(result.IsValid, result.ErrorMessage);
+    }
+
     [Fact]
     public async Task Modbus_driver_rejects_invalid_byte_order()
     {
@@ -170,6 +205,30 @@ public sealed class GatewayInfrastructureDriverTests
 
         Assert.False(result.IsValid);
         Assert.Contains("byteOrder", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Modbus_driver_rejects_write_function_for_read_validation()
+    {
+        var services = new ServiceCollection();
+        services.AddGatewayInfrastructure(new ConfigurationBuilder().Build());
+        using var provider = services.BuildServiceProvider();
+
+        var driver = provider.GetRequiredService<IDeviceDriverRegistry>().GetRequiredDriver("modbus");
+        var result = await driver.ValidateAddressAsync(
+            new DriverReadRequest(
+                "holding-register:40001",
+                GatewayDataType.UInt16,
+                1,
+                new Dictionary<string, string?>
+                {
+                    ["registerType"] = "holding-register",
+                    ["functionCode"] = "6"
+                }),
+            CancellationToken.None);
+
+        Assert.False(result.IsValid);
+        Assert.Contains("功能码", result.ErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -216,6 +275,7 @@ public sealed class GatewayInfrastructureDriverTests
                                     {
                                         ["byteOrder"] = "bigEndian",
                                         ["wordOrder"] = "littleEndian",
+                                        ["unitId"] = 7,
                                         ["scale"] = 0.1m,
                                         ["offset"] = 2m
                                     }),
@@ -243,6 +303,8 @@ public sealed class GatewayInfrastructureDriverTests
         Assert.Equal("2", settings["registerCount"]);
         Assert.Equal("bigEndian", settings["byteOrder"]);
         Assert.Equal("littleEndian", settings["wordOrder"]);
+        Assert.Equal("7", settings["stationNumber"]);
+        Assert.Equal("7", settings["unitId"]);
         Assert.Collection(
             snapshot.TransformRules.OrderBy(rule => rule.SortOrder),
             scale =>

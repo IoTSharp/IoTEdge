@@ -673,12 +673,15 @@ internal static class GatewayCollectionConfigurationMapper
         if (task.Protocol == GatewayCollectionProtocolType.Modbus)
         {
             var stationNumber = FirstString(point.ProtocolOptions, "slaveId")
+                ?? FirstString(point.ProtocolOptions, "unitId")
                 ?? FirstString(point.ProtocolOptions, "stationNumber")
                 ?? FirstString(device.ProtocolOptions, "slaveId")
+                ?? FirstString(device.ProtocolOptions, "unitId")
                 ?? FirstString(device.ProtocolOptions, "stationNumber");
             if (!string.IsNullOrWhiteSpace(stationNumber))
             {
                 settings["stationNumber"] = stationNumber;
+                settings["unitId"] = stationNumber;
             }
 
             settings["registerType"] = NormalizeModbusRegisterType(point.SourceType);
