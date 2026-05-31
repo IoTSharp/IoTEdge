@@ -69,5 +69,5 @@
 ## 6. 接口稳定性公约
 
 - 与 `IoTSharp.SaaS` 端 `IoTSharp.CodeGen.CSharpAot` 之间的接口为公开契约；破坏性变更需 6 个月废弃期。
-- 与 `external/IoTEmbedded` 共同维护 BasicRuntime 接口签名表；`external/IoTEdge.Linux` 仅作为 Pixiu 历史迁移来源。
+- 与 `external/IoTEmbedded` 共同维护 BasicRuntime 接口签名表。
 - 本仓库不感知租户 / 计费 / License。
