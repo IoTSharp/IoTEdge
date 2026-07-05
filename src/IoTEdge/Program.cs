@@ -52,7 +52,7 @@ builder.Services.AddScoped<CollectionProtocolCatalogService>();
 builder.Services.AddScoped<UploadProtocolCatalogService>();
 builder.Services.AddScoped<GatewayRuntimeService>();
 builder.Services.AddGatewayInfrastructure(builder.Configuration);
-builder.Services.AddSingleton<IEdgeTaskReceiptReporter, EdgeTaskReceiptExample>();
+builder.Services.AddSingleton<IEdgeTaskReceiptReporter, EdgeTaskReceiptReporter>();
 builder.Services.AddHostedService<GatewayPollingWorker>();
 builder.Services.AddHostedService<GatewayCollectionConfigurationWorker>();
 builder.Services.AddHostedService<EdgeRuntimeReportingWorker>();
